@@ -1,3 +1,3 @@
-# Vendr Template Payment Provider
+# Vendr SagePay Payment Provider
 
-Template Payment Provider for Vendr, the eCommerce package for Umbrao v8+
+SagePay Payment Provider for Vendr, the eCommerce package for Umbrao v8+

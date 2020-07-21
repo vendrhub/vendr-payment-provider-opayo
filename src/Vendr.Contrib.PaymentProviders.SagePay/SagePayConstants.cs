@@ -1,0 +1,63 @@
+﻿namespace Vendr.Contrib.PaymentProviders.SagePay
+{
+    public static class SagePayConstants
+    {
+        public static class TransactionRequestFields
+        {
+            public const string VpsProtocol = "VPSProtocol";
+            public const string TransactionType = "TxType";
+            public const string Vendor = "Vendor";
+            public const string VendorTxCode = "VendorTxCode";
+            public const string Amount = "Amount";
+            public const string Currency = "Currency";
+            public const string Description = "Description";
+            public const string NotificationURL = "NotificationURL";
+            public const string Basket = "Basket";
+            public static class Billing
+            {
+                public const string Surname = "BillingSurname";
+                public const string Firstnames = "BillingFirstnames";
+                public const string Address1 = "BillingAddress1";
+                public const string Address2 = "BillingAddress2";
+                public const string City = "BillingCity";
+                public const string PostCode = "BillingPostCode";
+                public const string Country = "BillingCountry";
+                public const string State = "BillingState";
+            }
+
+            public static class Delivery
+            {
+                public const string Surname = "DeliverySurname";
+                public const string Firstnames = "DeliveryFirstnames";
+                public const string Address1 = "DeliveryAddress1";
+                public const string Address2 = "DeliveryAddress2";
+                public const string City = "DeliveryCity";
+                public const string PostCode = "DeliveryPostCode";
+                public const string Country = "DeliveryCountry";
+                public const string State = "DeliveryState";
+            }
+        }
+
+        public static class Response
+        {
+            public const string Status = "Status";
+            public static class StatusCodes
+            {
+                public const string Ok = "OK";
+                public const string Repeated = "OK REPEATED";
+            }
+
+            public const string NextUrl = "NextURL";
+            public const string SecurityKey = "SecurityKey";
+            public const string TransactionId = "VPSTxId";
+        }
+
+        public static class OrderProperties
+        {
+            public const string SecurityKey = "sagePaySecurityKey";
+            public const string ContinueUrl = "sagePayContinueUrl";
+            public const string CancelUrl = "sagePayCancelUrl";
+            public const string TransactionId = "sagePayTransactionId";
+        }
+    }
+}

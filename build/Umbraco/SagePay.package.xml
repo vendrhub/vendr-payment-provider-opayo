@@ -3,10 +3,10 @@
     
     <info>
         <package>
-            <name>Vendr.Contrib.PaymentProviders.Template</name>
+            <name>Vendr.Contrib.PaymentProviders.SagePay</name>
             <version>0.0.0</version>
             <license url="https://opensource.org/licenses/MIT">MIT</license>
-            <url></url>
+            <url>https://www.spindogs.co.uk</url>
             <requirements>
                 <major>8</major>
                 <minor>2</minor>
@@ -14,14 +14,14 @@
             </requirements>
         </package>
         <author>
-            <name></name>
-            <website></website>
+            <name>Spindogs</name>
+            <website>https://www.spindogs.co.uk</website>
         </author>
-        <readme>Template payment provider for Vendr, the eCommerce package for Umbrao v8+</readme>
+        <readme>SagePay payment provider for Vendr, the eCommerce package for Umbrao v8+</readme>
     </info>
     
     <DocumentTypes></DocumentTypes>
-    <Templates></Templates>
+    <SagePays></SagePays>
     <Stylesheets></Stylesheets>
     <Macros></Macros>
     <DictionaryItems></DictionaryItems>
