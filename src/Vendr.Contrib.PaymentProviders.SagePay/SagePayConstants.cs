@@ -45,11 +45,14 @@
             {
                 public const string Ok = "OK";
                 public const string Repeated = "OK REPEATED";
+                public const string Invalid = "INVALID";
+                public const string Error = "ERROR";
             }
 
             public const string NextUrl = "NextURL";
             public const string SecurityKey = "SecurityKey";
             public const string TransactionId = "VPSTxId";
+            public const string RedirectUrl = "RedirectURL";
         }
 
         public static class OrderProperties
@@ -58,6 +61,25 @@
             public const string ContinueUrl = "sagePayContinueUrl";
             public const string CancelUrl = "sagePayCancelUrl";
             public const string TransactionId = "sagePayTransactionId";
+        }
+
+        public static class CallbackRequest
+        {
+            public static class Status
+            {
+                public const string Ok = "OK";
+                public const string Pending = "PENDING";
+                public const string NotAutherised = "NOTAUTHED";
+                public const string Abort = "ABORT";
+                public const string Rejected = "REJECTED";
+                public const string Error = "ERROR";
+            }
+        }
+
+        public static class PlaceHolders
+        {
+            public static string OrderReference = "##ORDER_REFERENCE##";
+            public static string OrderId = "##ORDER_ID##";
         }
     }
 }

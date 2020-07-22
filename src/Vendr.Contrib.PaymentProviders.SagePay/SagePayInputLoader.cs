@@ -10,21 +10,23 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 {
     public static class SagePayInputLoader
     {
-        public static Dictionary<string, string> LoadInputs(OrderReadOnly order, SagePaySettings settings, VendrContext context)
+        public static Dictionary<string, string> LoadInputs(OrderReadOnly order, SagePaySettings settings, VendrContext context, string callbackUrl)
         {
             var inputFields = new Dictionary<string, string>();
 
-            LoadBasicSettings(inputFields, settings);
+            LoadBasicSettings(inputFields, settings, callbackUrl);
             LoadOrderValues(inputFields, order, settings, context);
 
             return inputFields;
         }
 
-        private static void LoadBasicSettings(Dictionary<string, string> inputFields, SagePaySettings settings)
+        private static void LoadBasicSettings(Dictionary<string, string> inputFields, SagePaySettings settings, string callbackUrl)
         {
             settings.VendorName.MustNotBeNullOrWhiteSpace(nameof(settings.VendorName));
             inputFields.Add(SagePayConstants.TransactionRequestFields.VpsProtocol, string.IsNullOrWhiteSpace(settings.VPSProtocol) ? SagePaySettings.Defaults.VPSProtocol : settings.VPSProtocol);
             inputFields.Add(SagePayConstants.TransactionRequestFields.TransactionType, (string.IsNullOrWhiteSpace(settings.TxType) ? SagePaySettings.Defaults.TxType : settings.TxType).ToUpper());
+            inputFields.Add(SagePayConstants.TransactionRequestFields.Vendor, settings.VendorName);
+            inputFields.Add(SagePayConstants.TransactionRequestFields.NotificationURL, callbackUrl);
         }
 
         private static void LoadOrderValues(Dictionary<string, string> inputFields, OrderReadOnly order, SagePaySettings settings, VendrContext context)

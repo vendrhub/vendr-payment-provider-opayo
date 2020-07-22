@@ -1,15 +1,18 @@
+using Flurl.Http;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using Vendr.Contrib.PaymentProviders.SagePay.Models;
 using Vendr.Core;
 using Vendr.Core.Logging;
 using Vendr.Core.Models;
+using Vendr.Core.Security;
+using Vendr.Core.Web;
 using Vendr.Core.Web.Api;
 using Vendr.Core.Web.PaymentProviders;
 
@@ -19,12 +22,15 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
     public class SagePayPaymentProvider : PaymentProviderBase<SagePaySettings>
     {
         private readonly ILogger logger;
+        private readonly IPaymentProviderUriResolver paymentProviderUriResolver;
+        private readonly IHashProvider hashProvider;
 
-        private Dictionary<string, string> inputFields { get; set; }
-        public SagePayPaymentProvider(VendrContext vendr, ILogger logger)
+        public SagePayPaymentProvider(VendrContext vendr, ILogger logger, IPaymentProviderUriResolver paymentProviderUriResolver, IHashProvider hashProvider)
             : base(vendr)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));            
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.paymentProviderUriResolver = paymentProviderUriResolver ?? throw new ArgumentNullException(nameof(paymentProviderUriResolver));
+            this.hashProvider = hashProvider ?? throw new ArgumentNullException(nameof(hashProvider));
         }
 
         public override bool FinalizeAtContinueUrl => true;
@@ -32,13 +38,15 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         public override PaymentFormResult GenerateForm(OrderReadOnly order, string continueUrl, string cancelUrl, string callbackUrl, SagePaySettings settings)
         {
             var form = new PaymentForm(cancelUrl, FormMethod.Post);
-            LoadInputFields(order, settings);
-            var responseDetails = InitiateTransaction(settings.UseTestMode);
+            var inputFields = LoadInputFields(order, settings, callbackUrl);
+            var responseDetails = InitiateTransaction(settings.UseTestMode, inputFields);
 
             var status = responseDetails[SagePayConstants.Response.Status];
+            Dictionary<string, string> orderMetaData = null;
             if (status == SagePayConstants.Response.StatusCodes.Ok || status == SagePayConstants.Response.StatusCodes.Repeated)
             {
-                if(SaveToOrder(order, responseDetails, continueUrl, cancelUrl))
+                orderMetaData = GenerateOrderMeta(responseDetails, continueUrl, cancelUrl);
+                if(orderMetaData != null)
                 {
                     form.Action = responseDetails[SagePayConstants.Response.NextUrl];
                 }
@@ -49,37 +57,24 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 
             return new PaymentFormResult()
             {
+                MetaData = orderMetaData,
                 Form = form
             };
         }
 
-        private bool SaveToOrder(OrderReadOnly order, Dictionary<string, string> responseDetails, string continueUrl, string cancelUrl)
+        private Dictionary<string, string> GenerateOrderMeta(Dictionary<string, string> responseDetails, string continueUrl, string cancelUrl)
         {
-            try
+            return new Dictionary<string, string> 
             {
-                using (var uow = Vendr.Uow.Create())
-                {
-                    var writableOrder = order.AsWritable(uow)
-                       .SetProperty(SagePayConstants.OrderProperties.SecurityKey, new PropertyValue(responseDetails[SagePayConstants.Response.SecurityKey], true))
-                       .SetProperty(SagePayConstants.OrderProperties.ContinueUrl, new PropertyValue(continueUrl, true))
-                       .SetProperty(SagePayConstants.OrderProperties.CancelUrl, new PropertyValue(cancelUrl, true))
-                       .SetProperty(SagePayConstants.OrderProperties.TransactionId, new PropertyValue(responseDetails[SagePayConstants.Response.TransactionId], true));
-
-                    Vendr.Services.OrderService.SaveOrder(writableOrder);
-                    uow.Complete();
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error<SagePayPaymentProvider>(ex, "Error updating order with SagePay transaction details");
-                return false;
-            }
-
-            return true;
+                { SagePayConstants.OrderProperties.SecurityKey, new PropertyValue(responseDetails[SagePayConstants.Response.SecurityKey]) },
+                { SagePayConstants.OrderProperties.ContinueUrl, new PropertyValue(continueUrl, true) },
+                { SagePayConstants.OrderProperties.CancelUrl, new PropertyValue(cancelUrl, true) },
+                { SagePayConstants.OrderProperties.TransactionId, new PropertyValue(responseDetails[SagePayConstants.Response.TransactionId], true) }
+            };
             
         }
 
-        private Dictionary<string,string> InitiateTransaction(bool useTestMode)
+        private Dictionary<string,string> InitiateTransaction(bool useTestMode, Dictionary<string, string> inputFields)
         {
             var rawResponse = MakePostRequest(
                 GetMethodUrl(inputFields[SagePayConstants.TransactionRequestFields.TransactionType], useTestMode),
@@ -87,45 +82,90 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 
             return GetFields(rawResponse);
 
-
         }
 
-        private void LoadInputFields(OrderReadOnly order, SagePaySettings settings)
+        private Dictionary<string,string> LoadInputFields(OrderReadOnly order, SagePaySettings settings, string vendrCallbackUrl)
         {
             settings.MustNotBeNull(nameof(settings));
-            inputFields = SagePayInputLoader.LoadInputs(order, settings, Vendr);
+            return SagePayInputLoader.LoadInputs(order, settings, Vendr, vendrCallbackUrl);
         }        
         
         public override string GetCancelUrl(OrderReadOnly order, SagePaySettings settings)
         {
-            return string.Empty;
+            settings.MustNotBeNull(nameof(settings));
+            settings.CancelUrl.MustNotBeNullOrWhiteSpace(nameof(settings.CancelUrl));
+            return settings.CancelUrl.ReplacePlaceHolders(order);
         }
 
         public override string GetErrorUrl(OrderReadOnly order, SagePaySettings settings)
         {
-            return string.Empty;
+            settings.MustNotBeNull(nameof(settings));
+            settings.ErrorUrl.MustNotBeNullOrWhiteSpace(nameof(settings.ErrorUrl));
+            return settings.ErrorUrl.ReplacePlaceHolders(order);
         }
 
         public override string GetContinueUrl(OrderReadOnly order, SagePaySettings settings)
         {
-            settings.MustNotBeNull("settings");
-            settings.ContinueUrl.MustNotBeNull("settings.ContinueUrl");
-
-            return settings.ContinueUrl;
+            settings.MustNotBeNull(nameof(settings));
+            settings.ContinueUrl.MustNotBeNullOrWhiteSpace(nameof(settings.ContinueUrl));
+            return settings.ContinueUrl.ReplacePlaceHolders(order);
         }
 
         public override CallbackResult ProcessCallback(OrderReadOnly order, HttpRequestBase request, SagePaySettings settings)
         {
-            return new CallbackResult
+        var callbackRequestModel = CallbackRequestModel.FromRequest(request);
+            switch(callbackRequestModel.Status)
             {
-                TransactionInfo = new TransactionInfo
+                case SagePayConstants.CallbackRequest.Status.Abort:
+                    return GenerateAbortCallbackResponse(order, callbackRequestModel, settings);
+                default:
+                    return new CallbackResult();
+            }
+
+            
+            //return new CallbackResult
+            //{
+            //    TransactionInfo = new TransactionInfo
+            //    {
+            //        AmountAuthorized = order.TotalPrice.Value.WithTax,
+            //        TransactionFee = 0m,
+            //        TransactionId = Guid.NewGuid().ToString("N"),
+            //        PaymentStatus = PaymentStatus.Authorized
+            //    },
+            //    HttpResponse = new System.Net.Http.HttpResponseMessage()
+            //};
+        }
+
+        private CallbackResult GenerateAbortCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        {
+            logger.Warn<SagePayPaymentProvider>("Payment transaction aborted:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail );
+            var validSig = ValidateVpsSigniture(order, request, settings);
+
+            return new CallbackResult
+            {                
+                HttpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
                 {
-                    AmountAuthorized = order.TotalPrice.Value.WithTax,
-                    TransactionFee = 0m,
-                    TransactionId = Guid.NewGuid().ToString("N"),
-                    PaymentStatus = PaymentStatus.Authorized
+                    Content = validSig 
+                        ? GenerateAbortCallbackResponseBody(order, settings)
+                        : GenerateInvalidCallbackResponseBody(order, settings)
                 }
             };
+        }
+
+        private HttpContent GenerateAbortCallbackResponseBody(OrderReadOnly order, SagePaySettings settings)
+        {
+            var responseBody = new StringBuilder();
+            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Ok}");
+            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={paymentProviderUriResolver.GetCancelUrl(Alias, order.GenerateOrderReference(), hashProvider)}");
+            return new StringContent(responseBody.ToString());
+        }
+
+        private HttpContent GenerateInvalidCallbackResponseBody(OrderReadOnly order, SagePaySettings settings)
+        {
+            var responseBody = new StringBuilder();
+            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Error}");
+            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={GetErrorUrl(order, settings)}");
+            return new StringContent(responseBody.ToString());
         }
 
         private string GetMethodUrl(string type, bool testMode)
@@ -137,7 +177,9 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                     {
                         case "AUTHORISE":
                             return "https://live.sagepay.com/gateway/service/authorise.vsp";
-                        case "PURCHASE":
+                        case "PAYMENT":
+                        case "DEFERRED":
+                        case "AUTHENTICATE":
                             return "https://live.sagepay.com/gateway/service/vspserver-register.vsp";
                         case "CANCEL":
                             return "https://live.sagepay.com/gateway/service/cancel.vsp";
@@ -150,7 +192,9 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                     {
                         case "AUTHORISE":
                             return "https://test.sagepay.com/gateway/service/authorise.vsp";
-                        case "PURCHASE":
+                        case "PAYMENT":
+                        case "DEFERRED":
+                        case "AUTHENTICATE":
                             return "https://test.sagepay.com/gateway/service/vspserver-register.vsp";
                         case "CANCEL":
                             return "https://test.sagepay.com/gateway/service/cancel.vsp";
@@ -163,60 +207,74 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             return string.Empty;
         }
 
-
-        protected string MakePostRequest(string url, IDictionary<string, string> inputFields)
+        private string MakePostRequest(string url, IDictionary<string, string> inputFields)
         {
-            string requestContents = string.Empty;
-            if (inputFields != null)
-            {
-                requestContents = string.Join("&", (
-                    from i in inputFields
-                    select string.Format("{0}={1}", i.Key, HttpUtility.UrlEncode(i.Value))).ToArray<string>());
-            }
-            return MakePostRequest(url, requestContents);
-        }
-
-        protected string MakePostRequest(string url, string request)
-        {
-            string empty = string.Empty;
-            byte[] bytes = Encoding.ASCII.GetBytes(request);
-            HttpWebRequest length = (HttpWebRequest)WebRequest.Create(url);
-            length.Method = "POST";
-            length.ContentLength = (long)bytes.Length;
-            StreamWriter streamWriter = new StreamWriter(length.GetRequestStream(), Encoding.ASCII);
             try
             {
-                streamWriter.Write(Encoding.ASCII.GetString(bytes));
-            }
-            finally
-            {
-                ((IDisposable)streamWriter).Dispose();
-            }
-            using (Stream responseStream = length.GetResponse().GetResponseStream())
-            {
-                if (responseStream != null)
+                string requestContents = string.Empty;
+                if (inputFields != null)
                 {
-                    StreamReader streamReader = new StreamReader(responseStream, Encoding.UTF8);
-                    try
-                    {
-                        empty = streamReader.ReadToEnd();
-                    }
-                    finally
-                    {
-                        ((IDisposable)streamReader).Dispose();
-                    }
+                    requestContents = string.Join("&", (
+                        from i in inputFields
+                        select string.Format("{0}={1}", i.Key, HttpUtility.UrlEncode(i.Value))).ToArray<string>());
                 }
+                var request = new FlurlRequest(url)
+                    .SetQueryParams(inputFields, Flurl.NullValueHandling.Remove);
+                var response = request
+                    .PostAsync(null)
+                    .ReceiveString()
+                    .Result; 
+
+                return response;
             }
-            return empty;
+            catch (FlurlHttpException ex)
+            {
+
+                return string.Empty;
+            }
+            
+
         }
 
-        protected Dictionary<string, string> GetFields(string response)
+        private Dictionary<string, string> GetFields(string response)
         {
             return response.Split(
                 Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .ToDictionary(
                     i => i.Substring(0, i.IndexOf("=", StringComparison.Ordinal)), 
                     i => i.Substring(i.IndexOf("=", StringComparison.Ordinal) + 1, i.Length - (i.IndexOf("=", StringComparison.Ordinal) + 1)));
+        }
+
+        private bool ValidateVpsSigniture (OrderReadOnly order, CallbackRequestModel callbackRequest, SagePaySettings settings)
+        {
+            var md5Values = new List<string>
+            {
+                callbackRequest.VPSTxId,
+                callbackRequest.VendorTxCode,
+                callbackRequest.Status,
+                callbackRequest.TxAuthNo,
+                settings.VendorName.ToLowerInvariant(),
+                callbackRequest.AVSCV2,
+                order.Properties[SagePayConstants.OrderProperties.SecurityKey]?.Value,
+                callbackRequest.AddressResult,
+                callbackRequest.PostCodeResult,
+                callbackRequest.CV2Result,
+                callbackRequest.GiftAid,
+                callbackRequest.SecureStatus,
+                callbackRequest.CAVV,
+                callbackRequest.AddressStatus,
+                callbackRequest.PayerStatus,
+                callbackRequest.CardType,
+                callbackRequest.Last4Digits 
+            };
+
+            string calcedMd5Hash = GenerateMD5Hash(string.Join("", md5Values.Where(v => string.IsNullOrEmpty(v) == false))).ToUpperInvariant();
+            return callbackRequest.VPSSignature == calcedMd5Hash;
+        }
+
+        protected string GenerateMD5Hash(string input)
+        {
+            return (new MD5CryptoServiceProvider()).ComputeHash(Encoding.UTF8.GetBytes(input)).ToHex();
         }
 
     }
