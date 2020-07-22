@@ -113,11 +113,13 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 
         public override CallbackResult ProcessCallback(OrderReadOnly order, HttpRequestBase request, SagePaySettings settings)
         {
-        var callbackRequestModel = CallbackRequestModel.FromRequest(request);
+            var callbackRequestModel = CallbackRequestModel.FromRequest(request);
             switch(callbackRequestModel.Status)
             {
                 case SagePayConstants.CallbackRequest.Status.Abort:
-                    return GenerateAbortCallbackResponse(order, callbackRequestModel, settings);
+                    return GenerateAbortedCallbackResponse(order, callbackRequestModel, settings);
+                case SagePayConstants.CallbackRequest.Status.Rejected:
+                    return GenerateRejectedCallbackResponse(order, callbackRequestModel, settings);
                 default:
                     return new CallbackResult();
             }
@@ -136,9 +138,25 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             //};
         }
 
-        private CallbackResult GenerateAbortCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateAbortedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
-            logger.Warn<SagePayPaymentProvider>("Payment transaction aborted:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail );
+            logger.Warn<SagePayPaymentProvider>("Payment transaction aborted:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            var validSig = ValidateVpsSigniture(order, request, settings);
+
+            return new CallbackResult
+            {
+                HttpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = validSig
+                        ? GenerateAbortCallbackResponseBody(order, settings)
+                        : GenerateInvalidCallbackResponseBody(order, settings)
+                }
+            };
+        }
+
+        private CallbackResult GenerateRejectedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        {
+            logger.Warn<SagePayPaymentProvider>("Payment transaction rejected:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail );
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -146,7 +164,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                 HttpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
                 {
                     Content = validSig 
-                        ? GenerateAbortCallbackResponseBody(order, settings)
+                        ? GenerateRejectedCallbackResponseBody(order, settings)
                         : GenerateInvalidCallbackResponseBody(order, settings)
                 }
             };
@@ -160,11 +178,19 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             return new StringContent(responseBody.ToString());
         }
 
+        private HttpContent GenerateRejectedCallbackResponseBody(OrderReadOnly order, SagePaySettings settings)
+        {
+            var responseBody = new StringBuilder();
+            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Ok}");
+            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={MakeUrlAbsolute(GetErrorUrl(order, settings), paymentProviderUriResolver.GetCancelUrl(Alias, order.GenerateOrderReference(), hashProvider))}");
+            return new StringContent(responseBody.ToString());
+        }
+
         private HttpContent GenerateInvalidCallbackResponseBody(OrderReadOnly order, SagePaySettings settings)
         {
             var responseBody = new StringBuilder();
             responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Error}");
-            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={GetErrorUrl(order, settings)}");
+            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={MakeUrlAbsolute(GetErrorUrl(order, settings), paymentProviderUriResolver.GetCancelUrl(Alias, order.GenerateOrderReference(), hashProvider))}");
             return new StringContent(responseBody.ToString());
         }
 
@@ -265,7 +291,11 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                 callbackRequest.AddressStatus,
                 callbackRequest.PayerStatus,
                 callbackRequest.CardType,
-                callbackRequest.Last4Digits 
+                callbackRequest.Last4Digits,
+                callbackRequest.DeclineCode,
+                callbackRequest.ExpiryDate,
+                callbackRequest.FraudResponse,
+                callbackRequest.BankAuthCode
             };
 
             string calcedMd5Hash = GenerateMD5Hash(string.Join("", md5Values.Where(v => string.IsNullOrEmpty(v) == false))).ToUpperInvariant();
@@ -275,6 +305,20 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         protected string GenerateMD5Hash(string input)
         {
             return (new MD5CryptoServiceProvider()).ComputeHash(Encoding.UTF8.GetBytes(input)).ToHex();
+        }
+
+        private string MakeUrlAbsolute(string url, string paymentProviderCancelUrl)
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var result))
+                return result.ToString();
+
+            var paymentProviderCancelUri = new Uri(paymentProviderCancelUrl, UriKind.Absolute);
+
+            var baseUrl = paymentProviderCancelUri.Port == 80 || paymentProviderCancelUri.Port == 443
+                ? new UriBuilder(paymentProviderCancelUri.Scheme, paymentProviderCancelUri.Host).Uri
+                : new UriBuilder(paymentProviderCancelUri.Scheme, paymentProviderCancelUri.Host, paymentProviderCancelUri.Port).Uri;
+
+            return new Uri(baseUrl, url).ToString();
         }
 
     }

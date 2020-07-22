@@ -27,6 +27,10 @@ namespace Vendr.Contrib.PaymentProviders.SagePay.Models
         public string PayerStatus { get; set; }
         public string CardType { get; set; }
         public string Last4Digits { get; set; }
+        public string DeclineCode { get; set; }
+        public string ExpiryDate { get; set; }
+        public string FraudResponse { get; set; }
+        public string BankAuthCode { get; set; }
         public HttpRequestBase RawRequest { get; }
 
         public static CallbackRequestModel FromRequest(HttpRequestBase request)
@@ -51,9 +55,11 @@ namespace Vendr.Contrib.PaymentProviders.SagePay.Models
                 CAVV = request.Form.Get(nameof(CAVV)),
                 PayerStatus = HttpUtility.UrlDecode(request.Form.Get(nameof(PayerStatus))),
                 CardType = request.Form.Get(nameof(CardType)),
-                Last4Digits = request.Form.Get(nameof(Last4Digits))
-
-
+                Last4Digits = request.Form.Get(nameof(Last4Digits)),
+                DeclineCode = HttpUtility.UrlDecode(request.Form.Get(nameof(DeclineCode))),
+                ExpiryDate = HttpUtility.UrlDecode(request.Form.Get(nameof(ExpiryDate))),
+                FraudResponse = HttpUtility.UrlDecode(request.Form.Get(nameof(FraudResponse))),
+                BankAuthCode = HttpUtility.UrlDecode(request.Form.Get(nameof(BankAuthCode)))
 
             };
         }
