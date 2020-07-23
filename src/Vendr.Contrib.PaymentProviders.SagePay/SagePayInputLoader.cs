@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using Vendr.Core;
 using Vendr.Core.Api;
 using Vendr.Core.Models;
@@ -23,7 +22,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private static void LoadBasicSettings(Dictionary<string, string> inputFields, SagePaySettings settings, string callbackUrl)
         {
             settings.VendorName.MustNotBeNullOrWhiteSpace(nameof(settings.VendorName));
-            inputFields.Add(SagePayConstants.TransactionRequestFields.VpsProtocol, string.IsNullOrWhiteSpace(settings.VPSProtocol) ? SagePaySettings.Defaults.VPSProtocol : settings.VPSProtocol);
+            inputFields.Add(SagePayConstants.TransactionRequestFields.VpsProtocol, SagePaySettings.Defaults.VPSProtocol);
             inputFields.Add(SagePayConstants.TransactionRequestFields.TransactionType, (string.IsNullOrWhiteSpace(settings.TxType) ? SagePaySettings.Defaults.TxType : settings.TxType).ToUpper());
             inputFields.Add(SagePayConstants.TransactionRequestFields.Vendor, settings.VendorName);
             inputFields.Add(SagePayConstants.TransactionRequestFields.NotificationURL, callbackUrl);
@@ -44,20 +43,20 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             inputFields.Add(SagePayConstants.TransactionRequestFields.Currency, currencyCode);
             inputFields.Add(SagePayConstants.TransactionRequestFields.Amount, order.TotalPrice.Value.WithTax.ToString("0.00", CultureInfo.InvariantCulture));
 
-            var description = $"Markes Internation order - {order.TotalQuantity} items";
+            var description = $"Vendr order - {order.TotalQuantity} items";
             if (string.IsNullOrWhiteSpace(settings.OrderPropertyDescription) == false)
             {
-                var tempStore = order.Properties[settings.OrderPropertyBillingAddress2];
-                if (string.IsNullOrWhiteSpace(tempStore.Value) == false)
+                var tempStore = order.Properties[settings.OrderPropertyDescription];
+                if (string.IsNullOrWhiteSpace(tempStore?.Value) == false)
                     description = tempStore.Value.Truncate(100);
             }
             inputFields.Add(SagePayConstants.TransactionRequestFields.Description, description);
             
 
             LoadBillingDetails(inputFields, order, settings, context);
-            LoadDeliveryDetails(inputFields, order, settings, context);
+            LoadShippingDetails(inputFields, order, settings, context);
 
-            if (settings.IncludeDisplayOrderLines)
+            if (settings.DisplayOrderLines)
                 LoadOrderLines(inputFields, order);
 
         }
@@ -78,10 +77,10 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private static void LoadBillingDetails(Dictionary<string, string> inputFields, OrderReadOnly order, SagePaySettings settings, VendrContext context)
         {
             string tempStore;
-            settings.OrderPropertyBillingSurname.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyBillingSurname));
-            tempStore = order.Properties[settings.OrderPropertyBillingSurname];
+            settings.OrderPropertyBillingLastName.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyBillingLastName));
+            tempStore = order.Properties[settings.OrderPropertyBillingLastName];
             if (string.IsNullOrWhiteSpace(tempStore))
-                throw new ArgumentNullException(nameof(settings.OrderPropertyBillingSurname), "Billing surname must be provided");
+                throw new ArgumentNullException(nameof(settings.OrderPropertyBillingLastName), "Billing last name must be provided");
             inputFields.Add(SagePayConstants.TransactionRequestFields.Billing.Surname, tempStore.Truncate(20));
 
             settings.OrderPropertyBillingFirstName.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyBillingFirstName));
@@ -133,60 +132,60 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             }
         }
 
-        private static void LoadDeliveryDetails(Dictionary<string, string> inputFields, OrderReadOnly order, SagePaySettings settings, VendrContext context)
+        private static void LoadShippingDetails(Dictionary<string, string> inputFields, OrderReadOnly order, SagePaySettings settings, VendrContext context)
         {
             string tempStore;
-            settings.OrderPropertyDeliverySurname.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyDeliverySurname));
-            tempStore = order.Properties[settings.OrderPropertyDeliverySurname];
+            settings.OrderPropertyShippingLastName.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyShippingLastName));
+            tempStore = order.Properties[settings.OrderPropertyShippingLastName];
             if (string.IsNullOrWhiteSpace(tempStore))
-                throw new ArgumentNullException(nameof(settings.OrderPropertyDeliverySurname), "Delivery surname must be provided");
+                throw new ArgumentNullException(nameof(settings.OrderPropertyShippingLastName), "Shiping last name must be provided");
             inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Surname, tempStore.Truncate(20));
 
-            settings.OrderPropertyDeliveryFirstName.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyDeliveryFirstName));
-            tempStore = order.Properties[settings.OrderPropertyDeliveryFirstName];
+            settings.OrderPropertyShippingFirstName.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyShippingFirstName));
+            tempStore = order.Properties[settings.OrderPropertyShippingFirstName];
             if (string.IsNullOrWhiteSpace(tempStore))
-                throw new ArgumentNullException(nameof(settings.OrderPropertyDeliveryFirstName), "Delviery forenames must be provided");
+                throw new ArgumentNullException(nameof(settings.OrderPropertyShippingFirstName), "Delviery forenames must be provided");
             inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Firstnames, tempStore.Truncate(20));
 
-            settings.OrderPropertyDeliveryAddress1.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyDeliveryAddress1));
-            tempStore = order.Properties[settings.OrderPropertyDeliveryAddress1];
+            settings.OrderPropertyShippingAddress1.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyShippingAddress1));
+            tempStore = order.Properties[settings.OrderPropertyShippingAddress1];
             if (string.IsNullOrWhiteSpace(tempStore))
-                throw new ArgumentNullException(nameof(settings.OrderPropertyDeliveryAddress1), "Delivery address 1 must be provided");
+                throw new ArgumentNullException(nameof(settings.OrderPropertyShippingAddress1), "Shipping address 1 must be provided");
             inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Address1, tempStore.Truncate(100));
 
-            if (string.IsNullOrWhiteSpace(settings.OrderPropertyDeliveryAddress2) == false)
+            if (string.IsNullOrWhiteSpace(settings.OrderPropertyShippingAddress2) == false)
             {
-                tempStore = order.Properties[settings.OrderPropertyDeliveryAddress2];
+                tempStore = order.Properties[settings.OrderPropertyShippingAddress2];
                 if (string.IsNullOrWhiteSpace(tempStore) == false)
                     inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Address2, tempStore.Truncate(100));
             }
 
-            settings.OrderPropertyDeliveryCity.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyDeliveryCity));
-            tempStore = order.Properties[settings.OrderPropertyDeliveryCity];
+            settings.OrderPropertyShippingCity.MustNotBeNullOrWhiteSpace(nameof(settings.OrderPropertyShippingCity));
+            tempStore = order.Properties[settings.OrderPropertyShippingCity];
             if (string.IsNullOrWhiteSpace(tempStore))
-                throw new ArgumentNullException(nameof(settings.OrderPropertyDeliveryCity), "Delivery city must be provided");
+                throw new ArgumentNullException(nameof(settings.OrderPropertyShippingCity), "Shipping city must be provided");
             inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.City, tempStore.Truncate(40));
 
-            if (string.IsNullOrWhiteSpace(settings.OrderPropertyDeliveryPostcode) == false)
+            if (string.IsNullOrWhiteSpace(settings.OrderPropertyShippingPostcode) == false)
             {
-                tempStore = order.Properties[settings.OrderPropertyDeliveryPostcode];
+                tempStore = order.Properties[settings.OrderPropertyShippingPostcode];
                 if (string.IsNullOrWhiteSpace(tempStore) == false)
                     inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.PostCode, tempStore.Truncate(10));
             }
 
-            var deliveryCountry = order.ShippingInfo.CountryId.HasValue
+            var shippingCountry = order.ShippingInfo.CountryId.HasValue
                 ? context.Services.CountryService.GetCountry(order.ShippingInfo.CountryId.Value)
                 : null;
 
-            if (deliveryCountry == null)
-                throw new ArgumentNullException("deliveryCountry", "Delivery country must be provided");
-            inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Country, deliveryCountry.Code);
+            if (shippingCountry == null)
+                throw new ArgumentNullException("shippingCountry", "Shipping country must be provided");
+            inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.Country, shippingCountry.Code);
 
-            if (deliveryCountry.Code == "US")
+            if (shippingCountry.Code == "US")
             {
-                tempStore = order.Properties[settings.OrderPropertyDeliveryCounty];
+                tempStore = order.Properties[settings.OrderPropertyShippingCounty];
                 if (string.IsNullOrWhiteSpace(tempStore))
-                    throw new ArgumentNullException(nameof(settings.OrderPropertyDeliveryCounty), "Delivery State must be provided for the US");
+                    throw new ArgumentNullException(nameof(settings.OrderPropertyShippingCounty), "Shipping State must be provided for the US");
                 inputFields.Add(SagePayConstants.TransactionRequestFields.Delivery.State, tempStore);
             }
         }

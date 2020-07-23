@@ -58,28 +58,29 @@
         public static class OrderProperties
         {
             public const string SecurityKey = "sagePaySecurityKey";
-            public const string ContinueUrl = "sagePayContinueUrl";
-            public const string CancelUrl = "sagePayCancelUrl";
             public const string TransactionId = "sagePayTransactionId";
+            public const string TransDetails = "sagePayTransactionDetails";
+            public const string TransDetailsHash = "sagePayTransactionDetailsHash";
         }
 
         public static class CallbackRequest
         {
             public static class Status
             {
+                public const string Abort = "ABORT";
+                public const string Error = "ERROR";
+                public const string NotAutherised = "NOTAUTHED";
                 public const string Ok = "OK";
                 public const string Pending = "PENDING";
-                public const string NotAutherised = "NOTAUTHED";
-                public const string Abort = "ABORT";
+                public const string Registered = "REGISTERED";
                 public const string Rejected = "REJECTED";
-                public const string Error = "ERROR";
             }
         }
 
         public static class PlaceHolders
         {
-            public static string OrderReference = "##ORDER_REFERENCE##";
-            public static string OrderId = "##ORDER_ID##";
+            public const string OrderId = "##ORDER_ID##";
+            public const string OrderReference = "##ORDER_REFERENCE##";
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 using Vendr.Core.Models;
 using Vendr.Core.Web;
 
@@ -18,6 +19,11 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         {
             return self.Replace(SagePayConstants.PlaceHolders.OrderReference, order.GenerateOrderReference().OrderNumber)
                 .Replace(SagePayConstants.PlaceHolders.OrderId, order.Id.ToString());
+        }
+
+        public static string ToMD5Hash(this string input)
+        {
+            return (new MD5CryptoServiceProvider()).ComputeHash(Encoding.UTF8.GetBytes(input)).ToHex();
         }
     }
 

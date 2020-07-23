@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.Linq;
+using System.Web;
 
 namespace Vendr.Contrib.PaymentProviders.SagePay.Models
 {
@@ -31,6 +32,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay.Models
         public string ExpiryDate { get; set; }
         public string FraudResponse { get; set; }
         public string BankAuthCode { get; set; }
+        public decimal? Surcharge { get; set; }
         public HttpRequestBase RawRequest { get; }
 
         public static CallbackRequestModel FromRequest(HttpRequestBase request)
@@ -59,8 +61,8 @@ namespace Vendr.Contrib.PaymentProviders.SagePay.Models
                 DeclineCode = HttpUtility.UrlDecode(request.Form.Get(nameof(DeclineCode))),
                 ExpiryDate = HttpUtility.UrlDecode(request.Form.Get(nameof(ExpiryDate))),
                 FraudResponse = HttpUtility.UrlDecode(request.Form.Get(nameof(FraudResponse))),
-                BankAuthCode = HttpUtility.UrlDecode(request.Form.Get(nameof(BankAuthCode)))
-
+                BankAuthCode = HttpUtility.UrlDecode(request.Form.Get(nameof(BankAuthCode))),
+                Surcharge = request.Form.AllKeys.Any(k => k.Equals(nameof(Surcharge))) ? decimal.Parse(request.Form.Get(nameof(Surcharge))) : decimal.Zero
             };
         }
     }

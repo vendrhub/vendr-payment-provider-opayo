@@ -92,9 +92,11 @@
   <ItemGroup>
     <Compile Include="Models\CallbackRequestModel.cs" />
     <Compile Include="Properties\VersionInfo.cs" />
+    <Compile Include="SagePayClient.cs" />
     <Compile Include="SagePayConstants.cs" />
     <Compile Include="SagePayInputLoader.cs" />
-    <Compile Include="SagePayPaymentProvider.cs" />
+    <Compile Include="SagePayServerPaymentProvider.cs" />
+    <Compile Include="SagePayServerClientConfig.cs" />
     <Compile Include="SagePaySettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions.cs" />
