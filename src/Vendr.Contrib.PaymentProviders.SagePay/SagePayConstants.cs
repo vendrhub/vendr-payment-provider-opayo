@@ -67,13 +67,14 @@
         {
             public static class Status
             {
-                public const string Abort = "ABORT";
-                public const string Error = "ERROR";
-                public const string NotAutherised = "NOTAUTHED";
                 public const string Ok = "OK";
+                public const string NotAuthorised = "NOTAUTHED";
                 public const string Pending = "PENDING";
-                public const string Registered = "REGISTERED";
+                public const string Abort = "ABORT";
                 public const string Rejected = "REJECTED";
+                public const string Authenticated = "AUTHENTICATED";
+                public const string Registered = "REGISTERED";
+                public const string Error = "ERROR";
             }
         }
 

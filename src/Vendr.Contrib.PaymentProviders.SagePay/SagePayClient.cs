@@ -42,12 +42,17 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                     return GenerateAbortedCallbackResponse(order, request, settings);
                 case SagePayConstants.CallbackRequest.Status.Rejected:
                     return GenerateRejectedCallbackResponse(order, request, settings);
+                case SagePayConstants.CallbackRequest.Status.Registered:
                 case SagePayConstants.CallbackRequest.Status.Error:
                     return GenerateErrorCallbackResponse(order, request, settings);
                 case SagePayConstants.CallbackRequest.Status.Pending:
                     return GeneratePendingCallbackResponse(order, request, settings);
                 case SagePayConstants.CallbackRequest.Status.Ok:
                     return GenerateOkCallbackResponse(order, request, settings);
+                case SagePayConstants.CallbackRequest.Status.NotAuthorised:
+                    return GenerateNotAuthorisedCallbackResponse(order, request, settings);
+                case SagePayConstants.CallbackRequest.Status.Authenticated:
+                    return GenerateAuthenticatedCallbackResponse(order, request, settings);
                 default:
                     return CallbackResult.Empty;
             }
@@ -150,6 +155,61 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
                 {
                     Content = validSig
                         ? GenerateOkCallbackResponseBody()
+                        : GenerateInvalidCallbackResponseBody()
+                },
+                MetaData = validSig
+                    ? new Dictionary<string, string>
+                        {
+                            { SagePayConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
+                            { SagePayConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
+                        }
+                    : null
+            };
+        }
+
+        private CallbackResult GenerateAuthenticatedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        {
+            logger.Warn<SagePayServerClient>("Payment transaction Authenticated:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            var validSig = ValidateVpsSigniture(order, request, settings);
+
+            return new CallbackResult
+            {                
+                HttpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = validSig
+                        ? GenerateOkCallbackResponseBody()
+                        : GenerateInvalidCallbackResponseBody()
+                },
+                MetaData = validSig
+                    ? new Dictionary<string, string>
+                        {
+                            { SagePayConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
+                            { SagePayConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
+                        }
+                    : null
+            };
+        }
+
+        private CallbackResult GenerateNotAuthorisedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        {
+            logger.Warn<SagePayServerClient>("Payment transaction not authorised:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            var validSig = ValidateVpsSigniture(order, request, settings);
+
+            return new CallbackResult
+            {
+                TransactionInfo = validSig
+                    ? new TransactionInfo
+                    {
+                        TransactionId = request.VPSTxId,
+                        AmountAuthorized = 0,
+                        TransactionFee = request.Surcharge,
+                        PaymentStatus = PaymentStatus.Error
+                    }
+                    : null,
+                HttpResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                {
+                    Content = validSig
+                        ? GenerateRejectedCallbackResponseBody()
                         : GenerateInvalidCallbackResponseBody()
                 },
                 MetaData = validSig
