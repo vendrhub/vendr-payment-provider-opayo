@@ -5,7 +5,7 @@ using Vendr.Core;
 using Vendr.Core.Api;
 using Vendr.Core.Models;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.SagePay
 {
     public static class SagePayInputLoader
     {

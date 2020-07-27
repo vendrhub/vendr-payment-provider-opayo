@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="4.1.0">
-        <id>Vendr.Contrib.PaymentProviders.SagePay</id>
+        <id>Vendr.PaymentProviders.SagePay</id>
         <version>0.0.0</version>
-        <title>Vendr.Contrib.PaymentProviders.SagePay</title>
-        <authors>Outfield Digital Ltd</authors>
-        <owners>Outfield Digital Ltd</owners>
-        <copyright>Outfield Digital Ltd</copyright>
+        <title>Vendr.PaymentProviders.SagePay</title>
+        <authors>Outfield Digital Ltd, Spindogs</authors>
+        <owners>Outfield Digital Ltd, Spindogs</owners>
+        <copyright>Outfield Digital Ltd, Spindogs</copyright>
         <icon>images\icon.png</icon>
         <license type="expression">MIT</license>
         <projectUrl>https://getvendr.net/</projectUrl>
@@ -16,6 +16,8 @@
         <tags>umbraco ecommerce vendr</tags>
         <dependencies>
             <group targetFramework="net472">
+                <dependency id="Flurl" version="[2.8.2,2.999999)" />
+                <dependency id="Flurl.Http" version="[2.4.2,2.999999)" />
                 <dependency id="Vendr.Core.Web" version="[1.0.0,1.999999)" />
                 <!--<dependency id="UmbracoCms.Core" version="[$MinUmbracoVersion$]" />-->
             </group>
@@ -26,9 +28,9 @@
         <file src="$SrcDir$\assets\logo-64.png" target="images\icon.png" />
         
         <!-- libs -->
-        <file src="$SrcDir$\bin\Vendr.Contrib.PaymentProviders.SagePay.dll" target="lib\net472\Vendr.Contrib.PaymentProviders.SagePay.dll" />
+        <file src="$SrcDir$\bin\Vendr.PaymentProviders.SagePay.dll" target="lib\net472\Vendr.PaymentProviders.SagePay.dll" />
 
         <!-- symbols -->
-        <file src="$SrcDir$\bin\Vendr.Contrib.PaymentProviders.SagePay.pdb" target="lib\net472\Vendr.Contrib.PaymentProviders.SagePay.pdb" />
+        <file src="$SrcDir$\bin\Vendr.PaymentProviders.SagePay.pdb" target="lib\net472\Vendr.PaymentProviders.SagePay.pdb" />
     </files>
 </package>

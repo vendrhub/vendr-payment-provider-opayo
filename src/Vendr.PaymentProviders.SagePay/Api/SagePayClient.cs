@@ -5,13 +5,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Web;
-using Vendr.Contrib.PaymentProviders.SagePay.Models;
+using Vendr.PaymentProviders.SagePay.Api.Models;
 using Vendr.Core;
 using Vendr.Core.Logging;
 using Vendr.Core.Models;
 using Vendr.Core.Web.PaymentProviders;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.SagePay.Api
 {
     public class SagePayServerClient
     {
@@ -122,8 +122,6 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 
                 return string.Empty;
             }
-
-
         }
 
         private Dictionary<string, string> GetFields(string response)
@@ -170,6 +168,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GenerateAuthenticatedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction Authenticated:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -193,6 +192,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GenerateNotAuthorisedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction not authorised:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -225,6 +225,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GeneratePendingCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction pending:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -250,6 +251,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GenerateAbortedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction aborted:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -266,6 +268,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GenerateRejectedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction rejected:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -282,6 +285,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         private CallbackResult GenerateErrorCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
         {
             logger.Warn<SagePayServerClient>("Payment transaction error:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -363,18 +367,20 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             if (Uri.TryCreate(url, UriKind.Absolute, out var result))
                 return result.ToString();
 
-
             var request = HttpContext.Current.Request;
-            string scheme = request.Headers["X-Forwarded-Proto"];
+
+            var scheme = request.Headers["X-Forwarded-Proto"];
             if (string.IsNullOrWhiteSpace(scheme))
             {
                 scheme = request.Url.Scheme;
             }
-            string host = request.Headers["X-Original-Host"];
+
+            var host = request.Headers["X-Original-Host"];
             if (string.IsNullOrWhiteSpace(host))
             {
                 host = request.Url.Host;
             }
+
             Uri baseUrl = (new UriBuilder(scheme, host, (!(scheme == "https") || !(host != "localhost") ? request.Url.Port : 443))).Uri;
             
             return new Uri(baseUrl, url).AbsoluteUri;
