@@ -54,6 +54,7 @@ namespace Vendr.PaymentProviders.SagePay.Api
                 case SagePayConstants.CallbackRequest.Status.Authenticated:
                     return GenerateAuthenticatedCallbackResponse(order, request, settings);
                 default:
+                    logger.Warn<SagePayServerClient>("Unknown callback response status recieved: {status}", request.Status);
                     return CallbackResult.Empty;
             }
         }
