@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Web;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay.Models
+namespace Vendr.PaymentProviders.SagePay.Api.Models
 {
     public class CallbackRequestModel
     {
@@ -9,6 +9,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay.Models
         {
             RawRequest = request;
         }
+
         public string Status { get; set; }
         public string StatusDetail { get; set; }
         public string VPSTxId { get; set; }

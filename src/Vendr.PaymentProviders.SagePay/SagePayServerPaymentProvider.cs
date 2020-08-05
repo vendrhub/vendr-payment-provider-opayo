@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
-using Vendr.Contrib.PaymentProviders.SagePay.Models;
 using Vendr.Core;
 using Vendr.Core.Logging;
 using Vendr.Core.Models;
@@ -10,10 +9,12 @@ using Vendr.Core.Security;
 using Vendr.Core.Web;
 using Vendr.Core.Web.Api;
 using Vendr.Core.Web.PaymentProviders;
+using Vendr.PaymentProviders.SagePay.Api;
+using Vendr.PaymentProviders.SagePay.Api.Models;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.SagePay
 {
-    [PaymentProvider("sagepayServer", "SagePay Server", "SagePay Server payment provider", Icon = "icon-credit-card")]
+    [PaymentProvider("sagepay-server", "SagePay Server", "SagePay Server payment provider", Icon = "icon-credit-card")]
     public class SagePayServerPaymentProvider : PaymentProviderBase<SagePaySettings>
     {
         private readonly ILogger logger;
@@ -43,18 +44,21 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
             var responseDetails = client.InitiateTransaction(settings.TestMode, inputFields);
 
             var status = responseDetails[SagePayConstants.Response.Status];
+
             Dictionary<string, string> orderMetaData = null;
+
             if (status == SagePayConstants.Response.StatusCodes.Ok || status == SagePayConstants.Response.StatusCodes.Repeated)
             {
                 orderMetaData = GenerateOrderMeta(responseDetails);
-                if(orderMetaData != null)
+                if (orderMetaData != null)
                 {
                     form.Action = responseDetails[SagePayConstants.Response.NextUrl];
                 }
             }
             else
+            {
                 logger.Warn<SagePayServerPaymentProvider>("Sage Pay(" + order.CartNumber + ") - Generate html form error - status: " + status + " | status details: " + responseDetails["StatusDetail"]);
-            
+            }
 
             return new PaymentFormResult()
             {
@@ -114,10 +118,6 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
 
             return client.HandleCallback(order, callbackRequestModel, settings);
 
-        }
-
-        
-
-        
+        }        
     }
 }

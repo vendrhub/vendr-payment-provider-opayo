@@ -1,6 +1,6 @@
 using Vendr.Core.Web.PaymentProviders;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.SagePay
 {
     public class SagePaySettings
     {

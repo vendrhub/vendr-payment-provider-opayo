@@ -1,4 +1,4 @@
-﻿namespace Vendr.Contrib.PaymentProviders.SagePay
+﻿namespace Vendr.PaymentProviders.SagePay.Api.Models
 {
     public class SagePayServerClientConfig
     {

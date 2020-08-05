@@ -3,7 +3,7 @@ using System.Text;
 using Vendr.Core.Models;
 using Vendr.Core.Web;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.SagePay
 {
     public static class StringExtensions
     {
@@ -24,18 +24,6 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         public static string ToMD5Hash(this string input)
         {
             return (new MD5CryptoServiceProvider()).ComputeHash(Encoding.UTF8.GetBytes(input)).ToHex();
-        }
-    }
-
-    public static class ByteArrayExtensions
-    {
-        public static string ToHex(this byte[] self)
-        {   
-            StringBuilder hex = new StringBuilder(self.Length * 2);
-            foreach (byte b in self)
-                hex.AppendFormat("{0:x2}", b);
-            return hex.ToString();
-            
         }
     }
 }
