@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata minClientVersion="4.1.0">
-        <id>Vendr.PaymentProviders.SagePay</id>
+        <id>Vendr.PaymentProviders.Opayo</id>
         <version>0.0.0</version>
-        <title>Vendr.PaymentProviders.SagePay</title>
-        <authors>Outfield Digital Ltd, Spindogs</authors>
+        <title>Vendr.PaymentProviders.Opayo</title>
+        <authors>Vendr, Outfield Digital Ltd, Spindogs</authors>
         <owners>Outfield Digital Ltd, Spindogs</owners>
         <copyright>Outfield Digital Ltd, Spindogs</copyright>
         <icon>images\icon.png</icon>
         <license type="expression">MIT</license>
         <projectUrl>https://getvendr.net/</projectUrl>
-        <description>SagePay payment provider for Vendr, the eCommerce package for Umbrao v8+</description>
-        <summary>SagePay payment provider for Vendr, the eCommerce package for Umbrao v8+</summary>
+        <description>Opayo payment provider for Vendr, the eCommerce package for Umbrao v8+</description>
+        <summary>Opayo payment provider for Vendr, the eCommerce package for Umbrao v8+</summary>
         <language>en-US</language>
         <tags>umbraco ecommerce vendr</tags>
         <dependencies>
@@ -25,12 +25,12 @@
     </metadata>
     <files>
         <!-- nuget files -->
-        <file src="$SrcDir$\assets\logo-64.png" target="images\icon.png" />
+        <file src="$SrcDir$\assets\logo-128.png" target="images\icon.png" />
         
         <!-- libs -->
-        <file src="$SrcDir$\bin\Vendr.PaymentProviders.SagePay.dll" target="lib\net472\Vendr.PaymentProviders.SagePay.dll" />
+        <file src="$SrcDir$\bin\Vendr.PaymentProviders.Opayo.dll" target="lib\net472\Vendr.PaymentProviders.Opayo.dll" />
 
         <!-- symbols -->
-        <file src="$SrcDir$\bin\Vendr.PaymentProviders.SagePay.pdb" target="lib\net472\Vendr.PaymentProviders.SagePay.pdb" />
+        <file src="$SrcDir$\bin\Vendr.PaymentProviders.Opayo.pdb" target="lib\net472\Vendr.PaymentProviders.Opayo.pdb" />
     </files>
 </package>

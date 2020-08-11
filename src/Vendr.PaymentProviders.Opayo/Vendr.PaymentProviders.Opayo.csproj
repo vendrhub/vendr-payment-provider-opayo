@@ -7,8 +7,8 @@
     <ProjectGuid>{54D75F3D-BD42-45E8-BC99-210A9AD71CEB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Vendr.PaymentProviders.SagePay</RootNamespace>
-    <AssemblyName>Vendr.PaymentProviders.SagePay</AssemblyName>
+    <RootNamespace>Vendr.PaymentProviders.Opayo</RootNamespace>
+    <AssemblyName>Vendr.PaymentProviders.Opayo</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -93,12 +93,12 @@
     <Compile Include="Api\Models\CallbackRequestModel.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Properties\VersionInfo.cs" />
-    <Compile Include="Api\SagePayClient.cs" />
-    <Compile Include="SagePayConstants.cs" />
-    <Compile Include="Helpers\SagePayInputLoader.cs" />
-    <Compile Include="SagePayServerPaymentProvider.cs" />
-    <Compile Include="Api\Models\SagePayServerClientConfig.cs" />
-    <Compile Include="SagePaySettings.cs" />
+    <Compile Include="Api\OpayoClient.cs" />
+    <Compile Include="OpayoConstants.cs" />
+    <Compile Include="Helpers\OpayoInputLoader.cs" />
+    <Compile Include="OpayoServerPaymentProvider.cs" />
+    <Compile Include="Api\Models\OpayoServerClientConfig.cs" />
+    <Compile Include="OpayoSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extensions\ByteArrayExtensions.cs" />
   </ItemGroup>

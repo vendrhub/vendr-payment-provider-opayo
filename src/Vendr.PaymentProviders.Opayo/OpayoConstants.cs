@@ -1,6 +1,6 @@
-﻿namespace Vendr.PaymentProviders.SagePay
+﻿namespace Vendr.PaymentProviders.Opayo
 {
-    public static class SagePayConstants
+    public static class OpayoConstants
     {
         public static class TransactionRequestFields
         {
