@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Vendr.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.Opayo
 {
     public static class ByteArrayExtensions
     {

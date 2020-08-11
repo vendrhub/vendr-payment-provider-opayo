@@ -1,3 +1,3 @@
-# Vendr SagePay Payment Provider
+# Vendr Opayo Payment Provider
 
-SagePay Payment Provider for Vendr, the eCommerce package for Umbrao v8+
+Opayo (formally SagePay) Payment Provider for Vendr, the eCommerce package for Umbrao v8+

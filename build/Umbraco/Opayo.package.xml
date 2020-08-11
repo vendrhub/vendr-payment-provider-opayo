@@ -3,7 +3,7 @@
     
     <info>
         <package>
-            <name>Vendr.PaymentProviders.SagePay</name>
+            <name>Vendr.PaymentProviders.Opayo</name>
             <version>0.0.0</version>
             <license url="https://opensource.org/licenses/MIT">MIT</license>
             <url>https://vendr.net</url>
@@ -17,11 +17,11 @@
             <name>Outfield Digital Ltd, Spindogs</name>
             <website>https://outfield.digital</website>
         </author>
-        <readme>SagePay payment provider for Vendr, the eCommerce package for Umbrao v8+</readme>
+        <readme>Opayo payment provider for Vendr, the eCommerce package for Umbrao v8+</readme>
     </info>
     
     <DocumentTypes></DocumentTypes>
-    <SagePays></SagePays>
+    <Opayos></Opayos>
     <Stylesheets></Stylesheets>
     <Macros></Macros>
     <DictionaryItems></DictionaryItems>

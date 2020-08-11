@@ -5,20 +5,20 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Web;
-using Vendr.PaymentProviders.SagePay.Api.Models;
+using Vendr.PaymentProviders.Opayo.Api.Models;
 using Vendr.Core;
 using Vendr.Core.Logging;
 using Vendr.Core.Models;
 using Vendr.Core.Web.PaymentProviders;
 
-namespace Vendr.PaymentProviders.SagePay.Api
+namespace Vendr.PaymentProviders.Opayo.Api
 {
-    public class SagePayServerClient
+    public class OpayoServerClient
     {
         private readonly ILogger logger;
-        private readonly SagePayServerClientConfig config;
+        private readonly OpayoServerClientConfig config;
 
-        public SagePayServerClient(ILogger logger, SagePayServerClientConfig config)
+        public OpayoServerClient(ILogger logger, OpayoServerClientConfig config)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
@@ -27,31 +27,31 @@ namespace Vendr.PaymentProviders.SagePay.Api
         public Dictionary<string, string> InitiateTransaction(bool useTestMode, Dictionary<string, string> inputFields)
         {
             var rawResponse = MakePostRequest(
-                GetMethodUrl(inputFields[SagePayConstants.TransactionRequestFields.TransactionType], useTestMode),
+                GetMethodUrl(inputFields[OpayoConstants.TransactionRequestFields.TransactionType], useTestMode),
                 inputFields);
 
             return GetFields(rawResponse);
 
         }
 
-        public CallbackResult HandleCallback(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        public CallbackResult HandleCallback(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
             switch (request.Status)
             {
-                case SagePayConstants.CallbackRequest.Status.Abort:
+                case OpayoConstants.CallbackRequest.Status.Abort:
                     return GenerateAbortedCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.Rejected:
+                case OpayoConstants.CallbackRequest.Status.Rejected:
                     return GenerateRejectedCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.Registered:
-                case SagePayConstants.CallbackRequest.Status.Error:
+                case OpayoConstants.CallbackRequest.Status.Registered:
+                case OpayoConstants.CallbackRequest.Status.Error:
                     return GenerateErrorCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.Pending:
+                case OpayoConstants.CallbackRequest.Status.Pending:
                     return GeneratePendingCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.Ok:
+                case OpayoConstants.CallbackRequest.Status.Ok:
                     return GenerateOkCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.NotAuthorised:
+                case OpayoConstants.CallbackRequest.Status.NotAuthorised:
                     return GenerateNotAuthorisedCallbackResponse(order, request, settings);
-                case SagePayConstants.CallbackRequest.Status.Authenticated:
+                case OpayoConstants.CallbackRequest.Status.Authenticated:
                     return GenerateAuthenticatedCallbackResponse(order, request, settings);
                 default:
                     return CallbackResult.Empty;
@@ -133,9 +133,9 @@ namespace Vendr.PaymentProviders.SagePay.Api
                     i => i.Substring(i.IndexOf("=", StringComparison.Ordinal) + 1, i.Length - (i.IndexOf("=", StringComparison.Ordinal) + 1)));
         }
 
-        private CallbackResult GenerateOkCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateOkCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction okay:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            logger.Warn<OpayoServerClient>("Payment transaction okay:\n\tOpayoTx: {VPSTxId}", request.VPSTxId);
             var validSig = ValidateVpsSigniture(order, request, settings);
 
             return new CallbackResult
@@ -158,16 +158,16 @@ namespace Vendr.PaymentProviders.SagePay.Api
                 MetaData = validSig
                     ? new Dictionary<string, string>
                         {
-                            { SagePayConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
-                            { SagePayConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
+                            { OpayoConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
+                            { OpayoConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
                         }
                     : null
             };
         }
 
-        private CallbackResult GenerateAuthenticatedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateAuthenticatedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction Authenticated:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            logger.Warn<OpayoServerClient>("Payment transaction Authenticated:\n\tOpayoTx: {VPSTxId}", request.VPSTxId);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -182,16 +182,16 @@ namespace Vendr.PaymentProviders.SagePay.Api
                 MetaData = validSig
                     ? new Dictionary<string, string>
                         {
-                            { SagePayConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
-                            { SagePayConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
+                            { OpayoConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
+                            { OpayoConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
                         }
                     : null
             };
         }
 
-        private CallbackResult GenerateNotAuthorisedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateNotAuthorisedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction not authorised:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            logger.Warn<OpayoServerClient>("Payment transaction not authorised:\n\tOpayoTx: {VPSTxId}", request.VPSTxId);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -215,16 +215,16 @@ namespace Vendr.PaymentProviders.SagePay.Api
                 MetaData = validSig
                     ? new Dictionary<string, string>
                         {
-                            { SagePayConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
-                            { SagePayConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
+                            { OpayoConstants.OrderProperties.TransDetails, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits) },
+                            { OpayoConstants.OrderProperties.TransDetailsHash, string.Join(":", request.TxAuthNo, request.CardType, request.Last4Digits).ToMD5Hash() }
                         }
                     : null
             };
         }
 
-        private CallbackResult GeneratePendingCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GeneratePendingCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction pending:\n\tSagePayTx: {VPSTxId}", request.VPSTxId);
+            logger.Warn<OpayoServerClient>("Payment transaction pending:\n\tOpayoTx: {VPSTxId}", request.VPSTxId);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -248,9 +248,9 @@ namespace Vendr.PaymentProviders.SagePay.Api
             };
         }
 
-        private CallbackResult GenerateAbortedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateAbortedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction aborted:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            logger.Warn<OpayoServerClient>("Payment transaction aborted:\n\tOpayoTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -265,9 +265,9 @@ namespace Vendr.PaymentProviders.SagePay.Api
             };
         }
 
-        private CallbackResult GenerateRejectedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateRejectedCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction rejected:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            logger.Warn<OpayoServerClient>("Payment transaction rejected:\n\tOpayoTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -282,9 +282,9 @@ namespace Vendr.PaymentProviders.SagePay.Api
             };
         }
 
-        private CallbackResult GenerateErrorCallbackResponse(OrderReadOnly order, CallbackRequestModel request, SagePaySettings settings)
+        private CallbackResult GenerateErrorCallbackResponse(OrderReadOnly order, CallbackRequestModel request, OpayoSettings settings)
         {
-            logger.Warn<SagePayServerClient>("Payment transaction error:\n\tSagePayTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
+            logger.Warn<OpayoServerClient>("Payment transaction error:\n\tOpayoTx: {VPSTxId}\n\tDetail: {StatusDetail}", request.VPSTxId, request.StatusDetail);
             
             var validSig = ValidateVpsSigniture(order, request, settings);
 
@@ -299,7 +299,7 @@ namespace Vendr.PaymentProviders.SagePay.Api
             };
         }
 
-        private bool ValidateVpsSigniture(OrderReadOnly order, CallbackRequestModel callbackRequest, SagePaySettings settings)
+        private bool ValidateVpsSigniture(OrderReadOnly order, CallbackRequestModel callbackRequest, OpayoSettings settings)
         {
             var md5Values = new List<string>
             {
@@ -309,7 +309,7 @@ namespace Vendr.PaymentProviders.SagePay.Api
                 callbackRequest.TxAuthNo,
                 settings.VendorName.ToLowerInvariant(),
                 callbackRequest.AVSCV2,
-                order.Properties[SagePayConstants.OrderProperties.SecurityKey]?.Value,
+                order.Properties[OpayoConstants.OrderProperties.SecurityKey]?.Value,
                 callbackRequest.AddressResult,
                 callbackRequest.PostCodeResult,
                 callbackRequest.CV2Result,
@@ -333,32 +333,32 @@ namespace Vendr.PaymentProviders.SagePay.Api
         private HttpContent GenerateOkCallbackResponseBody()
         {
             var responseBody = new StringBuilder();
-            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Ok}");
-            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={config.ContinueUrl}");
+            responseBody.AppendLine($"{OpayoConstants.Response.Status}={OpayoConstants.Response.StatusCodes.Ok}");
+            responseBody.AppendLine($"{OpayoConstants.Response.RedirectUrl}={config.ContinueUrl}");
             return new StringContent(responseBody.ToString());
         }
 
         private HttpContent GenerateAbortCallbackResponseBody()
         {
             var responseBody = new StringBuilder();
-            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Ok}");
-            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={config.CancelUrl}");
+            responseBody.AppendLine($"{OpayoConstants.Response.Status}={OpayoConstants.Response.StatusCodes.Ok}");
+            responseBody.AppendLine($"{OpayoConstants.Response.RedirectUrl}={config.CancelUrl}");
             return new StringContent(responseBody.ToString());
         }
 
         private HttpContent GenerateRejectedCallbackResponseBody()
         {
             var responseBody = new StringBuilder();
-            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Ok}");
-            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={MakeUrlAbsolute(config.ErrorUrl)}");
+            responseBody.AppendLine($"{OpayoConstants.Response.Status}={OpayoConstants.Response.StatusCodes.Ok}");
+            responseBody.AppendLine($"{OpayoConstants.Response.RedirectUrl}={MakeUrlAbsolute(config.ErrorUrl)}");
             return new StringContent(responseBody.ToString());
         }
 
         private HttpContent GenerateInvalidCallbackResponseBody()
         {
             var responseBody = new StringBuilder();
-            responseBody.AppendLine($"{SagePayConstants.Response.Status}={SagePayConstants.Response.StatusCodes.Error}");
-            responseBody.AppendLine($"{SagePayConstants.Response.RedirectUrl}={MakeUrlAbsolute(config.ErrorUrl)}");
+            responseBody.AppendLine($"{OpayoConstants.Response.Status}={OpayoConstants.Response.StatusCodes.Error}");
+            responseBody.AppendLine($"{OpayoConstants.Response.RedirectUrl}={MakeUrlAbsolute(config.ErrorUrl)}");
             return new StringContent(responseBody.ToString());
         }
 

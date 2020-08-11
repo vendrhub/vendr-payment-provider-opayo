@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Vendr.PaymentProviders.SagePay")]
-[assembly: AssemblyDescription("SagePay payment provider for Vendr, the eCommerce package for Umbrao v8+")]
+[assembly: AssemblyTitle("Vendr.PaymentProviders.Opayo")]
+[assembly: AssemblyDescription("Opayo payment provider for Vendr, the eCommerce package for Umbrao v8+")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Outfield Digital Ltd")]
-[assembly: AssemblyProduct("Vendr.PaymentProviders.SagePay")]
+[assembly: AssemblyProduct("Vendr.PaymentProviders.Opayo")]
 [assembly: AssemblyCopyright("Copyright © Outfield Digital Ltd, Spindogs 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

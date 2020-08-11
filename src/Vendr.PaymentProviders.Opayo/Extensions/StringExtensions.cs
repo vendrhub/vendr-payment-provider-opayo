@@ -3,7 +3,7 @@ using System.Text;
 using Vendr.Core.Models;
 using Vendr.Core.Web;
 
-namespace Vendr.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.Opayo
 {
     public static class StringExtensions
     {
@@ -17,8 +17,8 @@ namespace Vendr.PaymentProviders.SagePay
 
         internal static string ReplacePlaceHolders(this string self, OrderReadOnly order)
         {
-            return self.Replace(SagePayConstants.PlaceHolders.OrderReference, order.GenerateOrderReference().OrderNumber)
-                .Replace(SagePayConstants.PlaceHolders.OrderId, order.Id.ToString());
+            return self.Replace(OpayoConstants.PlaceHolders.OrderReference, order.GenerateOrderReference().OrderNumber)
+                .Replace(OpayoConstants.PlaceHolders.OrderId, order.Id.ToString());
         }
 
         public static string ToMD5Hash(this string input)
