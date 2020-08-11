@@ -14,18 +14,6 @@ using Vendr.PaymentProviders.Opayo.Api.Models;
 
 namespace Vendr.PaymentProviders.Opayo
 {
-    // Maintain a wrapper sage pay provider that just proxies the Opayo provider so that
-    // we don't break anyone using the alpha. Thankfully non of the settings were prefixed
-    // with "SagePay" so it shouldn't be a problem reusing Opayo settings object
-    [Obsolete("Use OpayoServerPaymentProvider instead")]
-    [PaymentProvider("sagepay-server", "Sage Pay Server", "Sage Pay Server payment provider", Icon = "icon-credit-card")]
-    public class SagePayServerPaymentProvider : OpayoServerPaymentProvider
-    {
-        public SagePayServerPaymentProvider(VendrContext vendr, ILogger logger, IPaymentProviderUriResolver paymentProviderUriResolver, IHashProvider hashProvider) 
-            : base(vendr, logger, paymentProviderUriResolver, hashProvider)
-        { }
-    }
-
     // NOTE: This payment provider was written just as SagePay was rebranded to Opayo so we
     // have decided to upate the payment provider name to Opayo to make it future proof however
     // much of the API endpoints are still referencing SagePay 
@@ -134,5 +122,18 @@ namespace Vendr.PaymentProviders.Opayo
             return client.HandleCallback(order, callbackRequestModel, settings);
 
         }        
+    }
+
+
+    // Maintain a wrapper sage pay provider that just proxies the Opayo provider so that
+    // we don't break anyone using the alpha. Thankfully non of the settings were prefixed
+    // with "SagePay" so it shouldn't be a problem reusing Opayo settings object
+    [Obsolete("Use OpayoServerPaymentProvider instead")]
+    [PaymentProvider("sagepay-server", "Opayo Server", "Opayo Server payment provider", Icon = "icon-credit-card")]
+    public class SagePayServerPaymentProvider : OpayoServerPaymentProvider
+    {
+        public SagePayServerPaymentProvider(VendrContext vendr, ILogger logger, IPaymentProviderUriResolver paymentProviderUriResolver, IHashProvider hashProvider)
+            : base(vendr, logger, paymentProviderUriResolver, hashProvider)
+        { }
     }
 }
