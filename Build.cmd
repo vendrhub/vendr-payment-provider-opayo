@@ -16,7 +16,7 @@ IF "%ARG2%" == "" SET /P BUILD_TARGET=Please select the build target to use (b =
 IF "%BUILD_TARGET%" == "" SET BUILD_TARGET=b
 
 IF NOT "%ARG3%" == "" SET BUILD_PATH=%ARG3:~-1%
-IF "%ARG3%" == "" SET /P BUILD_PATH=Please select the Visual Studio version on your machine (17 = Visual Studio 2017, 19 = Visual Studio 2019, else provide the full path to MsBuild.exe):
+IF "%ARG3%" == "" SET /P BUILD_PATH=Please select the Visual Studio version on your machine (17 = Visual Studio 2017 [Default], 19 = Visual Studio 2019, else provide the full path to MsBuild.exe):
 IF "%BUILD_PATH%" == "" SET BUILD_PATH=17
 
 REM Covert build config flag to an actual config string

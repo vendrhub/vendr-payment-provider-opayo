@@ -1,6 +1,6 @@
-﻿namespace Vendr.Contrib.PaymentProviders.SagePay
+﻿namespace Vendr.PaymentProviders.Opayo.Api.Models
 {
-    public class SagePayServerClientConfig
+    public class OpayoServerClientConfig
     {
         public string ProviderAlias { get; set; }
         public string ErrorUrl { get; set; }

@@ -1,6 +1,6 @@
-﻿namespace Vendr.Contrib.PaymentProviders.SagePay
+﻿namespace Vendr.PaymentProviders.Opayo
 {
-    public static class SagePayConstants
+    public static class OpayoConstants
     {
         public static class TransactionRequestFields
         {
@@ -57,10 +57,10 @@
 
         public static class OrderProperties
         {
-            public const string SecurityKey = "sagePaySecurityKey";
-            public const string TransactionId = "sagePayTransactionId";
-            public const string TransDetails = "sagePayTransactionDetails";
-            public const string TransDetailsHash = "sagePayTransactionDetailsHash";
+            public const string SecurityKey = "opayoSecurityKey";
+            public const string TransactionId = "opayoTransactionId";
+            public const string TransDetails = "opayoTransactionDetails";
+            public const string TransDetailsHash = "opayoTransactionDetailsHash";
         }
 
         public static class CallbackRequest

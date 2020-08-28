@@ -1,8 +1,8 @@
 using Vendr.Core.Web.PaymentProviders;
 
-namespace Vendr.Contrib.PaymentProviders.SagePay
+namespace Vendr.PaymentProviders.Opayo
 {
-    public class SagePaySettings
+    public class OpayoSettings
     {
         public static class Defaults
         {
@@ -17,7 +17,7 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         [PaymentProviderSetting(Name = "Error URL", Description = "The URL to call if a payment errors. eg: /error/", SortOrder = 500)]
         public string ErrorUrl { get; set; }
 
-        [PaymentProviderSetting(Name = "Vendor Name", Description = "Your unique identifier, assigned to you by Sage Pay during sign up", SortOrder = 1)]
+        [PaymentProviderSetting(Name = "Vendor Name", Description = "Your unique identifier, assigned to you by Opayo during sign up", SortOrder = 1)]
         public string VendorName { get; set; }
 
         [PaymentProviderSetting(Name ="Transaction Type", IsAdvanced =true, Description ="Transaction Type: PAYMENT, DEFERRED, AUTHENTICATE", SortOrder = 1000)]
@@ -66,10 +66,10 @@ namespace Vendr.Contrib.PaymentProviders.SagePay
         [PaymentProviderSetting(Name = "Order property alias: Shipping Postcode", Description = "Order property alias containing the shipping postcode", SortOrder = 206)]
         public string OrderPropertyShippingPostcode { get; set; }
 
-        [PaymentProviderSetting(Name = "Display order lines on SagePay", Description ="Send the order line details to be shown on the payment providers final stage", SortOrder = 5)]
+        [PaymentProviderSetting(Name = "Display order lines on Opayo", Description ="Send the order line details to be shown on the payment providers final stage", SortOrder = 5)]
         public bool DisplayOrderLines { get; set; }
 
-        [PaymentProviderSetting(Name = "Order property alias: Description", Description = "Order property alias containing the description to send to SagePay", SortOrder = 2)]
+        [PaymentProviderSetting(Name = "Order property alias: Description", Description = "Order property alias containing the description to send to Opayo", SortOrder = 2)]
         public string OrderPropertyDescription { get; set; }
 
 
