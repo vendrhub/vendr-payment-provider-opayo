@@ -69,6 +69,9 @@ namespace Vendr.PaymentProviders.Opayo
         [PaymentProviderSetting(Name = "Display order lines on Opayo", Description ="Send the order line details to be shown on the payment providers final stage", SortOrder = 5)]
         public bool DisplayOrderLines { get; set; }
 
+        [PaymentProviderSetting(Name = "Order Line Description Property Alias", Description ="Specify the alias of the order line property to be passed through to the item description field (if left blank, this defaults to Product Name (Product SKU)", SortOrder = 6)]
+        public string OrderLineDescriptionPropertyAlias { get; set; }
+
         [PaymentProviderSetting(Name = "Order property alias: Description", Description = "Order property alias containing the description to send to Opayo", SortOrder = 2)]
         public string OrderPropertyDescription { get; set; }
 
