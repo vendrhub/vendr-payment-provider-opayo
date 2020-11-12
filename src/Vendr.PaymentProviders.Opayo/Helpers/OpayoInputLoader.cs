@@ -66,7 +66,7 @@ namespace Vendr.PaymentProviders.Opayo
             var orderLines = new List<string>();
             foreach(var item in order.OrderLines)
             {
-                var itemDescription = GetItemDescriptionByOrderPropertyDescriptionAlias(item, settings.OrderLineDescriptionPropertyAlias);
+                var itemDescription = GetItemDescriptionByOrderPropertyDescriptionAlias(item, settings.OrderLinePropertyDescription);
                 orderLines.Add($"{itemDescription}:{item.Quantity}:{item.UnitPrice.Value.WithoutTax:0.00}:{item.UnitPrice.Value.Tax:0.00}:{item.UnitPrice.Value.WithTax:0.00}:{item.TotalPrice.Value.WithTax:0.00}");
             }
 
@@ -77,10 +77,12 @@ namespace Vendr.PaymentProviders.Opayo
 
         private static string GetItemDescriptionByOrderPropertyDescriptionAlias(OrderLineReadOnly lineItem, string alias)
         {
-            if (string.IsNullOrEmpty(alias)) return $"{lineItem.Name} ({lineItem.Sku})";
+            var defaultItemDescription = $"{lineItem.Name} ({lineItem.Sku})";
+
+            if (string.IsNullOrEmpty(alias)) return defaultItemDescription;
 
             var itemDescription = lineItem.Properties[alias];
-            return !string.IsNullOrWhiteSpace(itemDescription) ? itemDescription : $"{lineItem.Name} ({lineItem.Sku})";
+            return !string.IsNullOrWhiteSpace(itemDescription) ? itemDescription : defaultItemDescription;
         }
 
         private static void LoadBillingDetails(Dictionary<string, string> inputFields, OrderReadOnly order, OpayoSettings settings, VendrContext context)
