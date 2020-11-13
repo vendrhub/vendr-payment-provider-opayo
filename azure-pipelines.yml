@@ -60,9 +60,9 @@ stages:
         deploy:
 
           steps:
-          - task: DotNetCoreInstaller@0
+          - task: UseDotNet@2
             inputs:
-              version: 2.2.103
+              version: 3.0.100
 
           - powershell: |
               # get the umbraco package file (assumes there is just one zip file package)
