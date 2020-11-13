@@ -57,21 +57,32 @@ namespace Vendr.PaymentProviders.Opayo
             LoadShippingDetails(inputFields, order, settings, context);
 
             if (settings.DisplayOrderLines)
-                LoadOrderLines(inputFields, order);
+                LoadOrderLines(inputFields, order, settings);
 
         }
 
-        private static void LoadOrderLines(Dictionary<string, string> inputFields, OrderReadOnly order)
+        private static void LoadOrderLines(Dictionary<string, string> inputFields, OrderReadOnly order, OpayoSettings settings)
         {
             var orderLines = new List<string>();
             foreach(var item in order.OrderLines)
             {
-                orderLines.Add($"{item.ProductReference}:{item.Quantity}:{item.UnitPrice.Value.WithoutTax:0.00}:{item.UnitPrice.Value.Tax:0.00}:{item.UnitPrice.Value.WithTax:0.00}:{item.TotalPrice.Value.WithTax:0.00}");
+                var itemDescription = GetItemDescriptionByOrderPropertyDescriptionAlias(item, settings.OrderLinePropertyDescription);
+                orderLines.Add($"{itemDescription}:{item.Quantity}:{item.UnitPrice.Value.WithoutTax:0.00}:{item.UnitPrice.Value.Tax:0.00}:{item.UnitPrice.Value.WithTax:0.00}:{item.TotalPrice.Value.WithTax:0.00}");
             }
 
             orderLines.Insert(0, orderLines.Count.ToString());
 
             inputFields.Add(OpayoConstants.TransactionRequestFields.Basket, string.Join(":", orderLines));
+        }
+
+        private static string GetItemDescriptionByOrderPropertyDescriptionAlias(OrderLineReadOnly lineItem, string alias)
+        {
+            var defaultItemDescription = $"{lineItem.Name} ({lineItem.Sku})";
+
+            if (string.IsNullOrEmpty(alias)) return defaultItemDescription;
+
+            var itemDescription = lineItem.Properties[alias];
+            return !string.IsNullOrWhiteSpace(itemDescription) ? itemDescription : defaultItemDescription;
         }
 
         private static void LoadBillingDetails(Dictionary<string, string> inputFields, OrderReadOnly order, OpayoSettings settings, VendrContext context)
