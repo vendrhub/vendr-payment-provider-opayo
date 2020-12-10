@@ -144,7 +144,7 @@ namespace Vendr.PaymentProviders.Opayo.Api
                     ? new TransactionInfo
                     {
                         TransactionId = request.VPSTxId,
-                        AmountAuthorized = order.TotalPrice.Value.WithTax,
+                        AmountAuthorized = order.TransactionAmount.Value,
                         TransactionFee = request.Surcharge,
                         PaymentStatus = request.TxType == "PAYMENT" ? PaymentStatus.Captured : PaymentStatus.Authorized
                     }
@@ -234,7 +234,7 @@ namespace Vendr.PaymentProviders.Opayo.Api
                     ? new TransactionInfo
                     {
                         TransactionId = request.VPSTxId,
-                        AmountAuthorized = order.TotalPrice.Value.WithTax,
+                        AmountAuthorized = order.TransactionAmount.Value,
                         TransactionFee = request.Surcharge,
                         PaymentStatus = PaymentStatus.PendingExternalSystem
                     }

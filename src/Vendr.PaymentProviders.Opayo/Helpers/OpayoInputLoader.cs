@@ -41,7 +41,7 @@ namespace Vendr.PaymentProviders.Opayo
                 throw new Exception("Currency must be a valid ISO 4217 currency code: " + currency.Name);
 
             inputFields.Add(OpayoConstants.TransactionRequestFields.Currency, currencyCode);
-            inputFields.Add(OpayoConstants.TransactionRequestFields.Amount, order.TotalPrice.Value.WithTax.ToString("0.00", CultureInfo.InvariantCulture));
+            inputFields.Add(OpayoConstants.TransactionRequestFields.Amount, order.TransactionAmount.Value.Value.ToString("0.00", CultureInfo.InvariantCulture));
 
             var description = $"Vendr order - {order.TotalQuantity} items";
             if (string.IsNullOrWhiteSpace(settings.OrderPropertyDescription) == false)
